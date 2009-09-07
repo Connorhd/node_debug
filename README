@@ -1,0 +1,8 @@
+HTTP based console and object explorer for node.js.
+
+to include in another project
+var debug = require("debug.js");
+debug.listen(8080);
+
+to run example (listens on port 8080)
+$ /usr/local/bin/node example.js
