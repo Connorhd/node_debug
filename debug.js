@@ -30,8 +30,75 @@ fu.get("/tree", function (req, res) {
 	} else {
 		res.simpleJSON(200, getObj('process'));
 	}
-
 });
+
+fu.get("/console", function (req, res) {
+	if (req.uri.params.id !== undefined) {
+		handleConsole(req.uri.params.id, res);
+	} else {
+		res.simpleText(200, 'Error');
+	}
+});
+
+
+var SESSION_TIMEOUT = 60 * 1000;
+
+var sessions = [];
+
+function handleConsole(id, res) {
+	if (sessions[id] === undefined) {
+		// Create session
+		sessions[id] = {
+			timestamp: 0,
+			queue: []
+		};
+	}
+	
+	var session = sessions[id];
+	session.timestamp = new Date();
+	if (session.queue.length > 0) {
+		res.simpleJSON(200, session.queue);
+		session.queue = [];
+	} else {
+		session.res = res;
+		session.timeout = setTimeout(function () { closeReq(res) }, 30000);
+	}
+}
+
+function closeReq(res) {
+	res.simpleJSON(200, []);
+}
+
+debug.log = function (msg) {
+	for (var id in sessions) {
+		if (!sessions.hasOwnProperty(id)) continue;
+		var session = sessions[id];
+		
+		session.queue.push(msg);
+		
+		if (session.timeout !== undefined) {
+			clearTimeout(session.timeout);
+		}
+		
+		if (session.res !== undefined) {
+			session.res.simpleJSON(200, session.queue);
+			session.queue = [];
+		}
+	}
+}
+
+// interval to kill off old sessions
+setInterval(function () {
+  var now = new Date();
+  for (var id in sessions) {
+    if (!sessions.hasOwnProperty(id)) continue;
+    var session = sessions[id];
+
+    if (now - session.timestamp > SESSION_TIMEOUT) {
+      delete sessions[id];
+    }
+  }
+}, 1000);
 
 function getObj(key) {
 	var obj = process;

@@ -43,6 +43,18 @@
 			unique: true
 		});
 	}
+	
+	var id = Math.floor(Math.random()*10000);
+	function longPollConsole() {
+		$.getJSON("/console?id="+id,
+		function(data){
+			$.each(data, function(i, x) {
+				$("#console").prepend('<pre class="result">'+x+'</pre>');
+			});
+			longPollConsole();
+        });
+	}
+	longPollConsole();
 	</script>
 	
 <style type="text/css">
