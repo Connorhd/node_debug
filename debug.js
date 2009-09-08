@@ -66,10 +66,11 @@ function handleConsole (id, res) {
   session.timestamp = new Date();
   if (session.queue.length > 0) {
     res.simpleJSON(200, session.queue);
+    delete sessions[id].res;
     session.queue = [];
   } else {
     session.res = res;
-    session.timeout = setTimeout(function () { closeReq(res) }, 30000);
+    session.timeout = setTimeout(function () { closeReq(res); delete sessions[id].res; }, 30000);
   }
 }
 
@@ -90,6 +91,7 @@ debug.log = function (msg) {
     
     if (session.res !== undefined) {
       session.res.simpleJSON(200, session.queue);
+      delete sessions[id].res;
       session.queue = [];
     }
   }
