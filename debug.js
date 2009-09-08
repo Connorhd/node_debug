@@ -114,7 +114,7 @@ setInterval(function () {
 function hasChildren(obj) {
   var children = false
   
-  if (typeof(obj) !== 'string') {
+  if (typeof(obj) !== 'string' && !(obj instanceof String)) {
     for (var j in obj) {
       children = true;
       break;
@@ -138,13 +138,9 @@ function getObj (id, cmd, key) {
     var output = {};
     output.id = '_root';
 
-    try {
-      output.text = JSON.stringify(obj);
-    } catch (e) {
-      output.text = obj.toString();
-    }
+    output.text = obj.toString();
     
-    output.text = '<code class="result">'+output.text+'</code>'
+    output.text = '<pre class="result">'+output.text+'</pre>'
     
     if (hasChildren(obj) === true) {
       output.hasChildren = true;
@@ -176,7 +172,7 @@ function getObj (id, cmd, key) {
       cur = {id: key+'.'+i};
     else
       cur = {id: i};
-    cur.text = '<strong>'+i+' - '+typeof(obj[i])+'</strong>';
+    cur.text = '<strong><span class="type">'+typeof(obj[i])+'</span>'+i+'</strong>';
     var str;
     try {
       str = JSON.stringify(obj[i]);

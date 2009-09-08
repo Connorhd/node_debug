@@ -159,10 +159,24 @@
       display: block;
       font-weight: bold;
     }
-    
-    code {
-      font-family: sans-serif;
+
+    code, pre {
       max-height: 200px;
+      overflow: auto;
+      font-family: "Lucida Console", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", Consolas, "Andale Mono", "Courier New";
+      padding: 10px;
+      margin: 0;
+    }
+    
+    pre.result {
+      padding: 0;
+    }
+    
+    .type {
+      width: 6em;
+      color: #888;
+      display: block;
+      float: left;
     }
     
     body {
