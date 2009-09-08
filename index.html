@@ -15,24 +15,37 @@
 	
 	<script type="text/javascript">
 	$(document).ready(function(){
-		$.ajaxSetup({
-		  cache: false
+		$.ajaxSetup({ cache: false });
+
+		$("#input").keypress(function (e) {
+			if (e.keyCode != 13 /* Return */) return;
+			var msg = $("#input").attr("value").replace("\n", "");
+			//if (!util.isBlank(msg)) send(msg);
+			evalStr(msg);
+			$("#input").attr("value", ""); // clear the input field.
 		});
-		$("#black").treeview({
-			url: "/tree",
-			unique: true
-		})
 	});
 	
-	function evalStr(str) {
+	function evalStr (str) {
+		// TODO This should be a POST
 		$.getJSON("/eval?eval="+encodeURIComponent(str),
-		function(data){
+		function (data) {
+			var response;
 			if (data.error !== true) {
-				$("#console").prepend('<pre class="command">'+data.str+'</pre><pre class="result">'+data.result+'</pre>');
+				response = '<div class="response">'
+								 + '	<code class="command">'+data.str+'</code>'
+								 + '	<code class="result">'+data.result+'</code>'
+								 + '</div>'
+								 ;
 			} else {
-				$("#console").prepend('<pre class="command">'+data.str+'</pre><pre class="result">Error - '+data.result.message+'</pre>');
+				response = '<div class="response error">'
+								 + '	<code class="command">'+data.str+'</code>'
+								 + '	<code class="result">Error - '+data.result.message+'</code>'
+								 + '</div>'
+								 ;
 			}
-        });
+			$("#console").prepend(response);
+		});
 	}
 	
 	function refresh() {
@@ -52,46 +65,53 @@
 				$("#console").prepend('<pre class="result">'+x+'</pre>');
 			});
 			longPollConsole();
-        });
+				});
 	}
 	longPollConsole();
 	</script>
 	
 <style type="text/css">
-		#top, #bottom {
-			height: 50%;
-			width: 100%;
-		}
-		#left, #right {
-			width: 50%;
-			height: 100%;
-			float: left;
-		}
 		#console {
-			
 			overflow: auto;
 			height: 100%;
 		}
-		#bottom {
-			overflow: auto;
-		}
-		#black {
-			padding: 10px;
-			overflow: hidden;
-		}
+
 		#input {
-			height: 100%;
 			width: 100%;
+			font-size: inherit;
+			margin: 0;
+			border-width: 0;
+			border-bottom: 0.5em solid #aaa;
+			background: #eee;
+			outline-width: 0;
+			clear: both;
 		}
-		.result {
-			font-weight: bold;
+
+		/* Padding for response and input should be same. */
+		#input, .response {
+			padding: 1em;
+			font-size: inherit;
+		}
+
+		.response {
 			border-bottom: 1px dashed grey;
 		}
+
+		.error {
+			background: #a55;
+		}
+
+		.response .command {
+			display: block;
+		}
+
+		.response .result {
+			display: block;
+			font-weight: bold;
+		}
 		
-		pre {
+		code {
 			font-family: sans-serif;
-			overflow: auto;
-			width: 100%;
 			max-height: 200px;
 		}
 		
@@ -102,20 +122,10 @@
 	
 	</head>
 	<body>
-		<div id="top">
-			<div id="left">
-					<div id="console">
-					
-					</div>
-			</div>
-			<div id="right">
-					<textarea id="input"></textarea>
-					<a href="#" onclick="evalStr($('#input').val()); return false;">Execute</a> - <a href="#" onclick="refresh(); return false;">Refresh tree</a>
-			</div>
+		<div id="inputBar">
+			<input tabindex="1" type="text" id="input"/>
 		</div>
-		<div id="bottom">
-			<ul id="black">
-			</ul>
+		<div id="console">
 		</div>
 	</body>
 </html>
