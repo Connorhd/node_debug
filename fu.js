@@ -1,4 +1,4 @@
-DEBUG = false;
+DEBUG = true;
 
 var fu = exports;
 
