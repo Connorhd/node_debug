@@ -2,130 +2,130 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 
-	<meta http-equiv="content-type" content="text/html; charset=iso-8859-1"/>
-	<title>Node</title>
-	
-	<link rel="stylesheet" href="jquery.treeview.css" />
-	<link rel="stylesheet" href="screen.css" />
-	
-	<script src="jquery.js" type="text/javascript"></script>
-	<script src="jquery.cookie.js" type="text/javascript"></script>
-	<script src="jquery.treeview.js" type="text/javascript"></script>
-	<script src="jquery.treeview.async.js" type="text/javascript"></script>
-	
-	<script type="text/javascript">
-	$(document).ready(function(){
-		$.ajaxSetup({ cache: false });
+  <meta http-equiv="content-type" content="text/html; charset=iso-8859-1"/>
+  <title>Node</title>
+  
+  <link rel="stylesheet" href="jquery.treeview.css" />
+  <link rel="stylesheet" href="screen.css" />
+  
+  <script src="jquery.js" type="text/javascript"></script>
+  <script src="jquery.cookie.js" type="text/javascript"></script>
+  <script src="jquery.treeview.js" type="text/javascript"></script>
+  <script src="jquery.treeview.async.js" type="text/javascript"></script>
+  
+  <script type="text/javascript">
+  $(document).ready(function (){
+    $.ajaxSetup({ cache: false });
 
-		$("#input").keypress(function (e) {
-			if (e.keyCode != 13 /* Return */) return;
-			var msg = $("#input").attr("value").replace("\n", "");
-			//if (!util.isBlank(msg)) send(msg);
-			evalStr(msg);
-			$("#input").attr("value", ""); // clear the input field.
-		});
-	});
-	
-	function evalStr (str) {
-		// TODO This should be a POST
-		$.getJSON("/eval?eval="+encodeURIComponent(str),
-		function (data) {
-			var response;
-			if (data.error !== true) {
-				response = '<div class="response">'
-								 + '	<code class="command">'+data.str+'</code>'
-								 + '	<code class="result">'+data.result+'</code>'
-								 + '</div>'
-								 ;
-			} else {
-				response = '<div class="response error">'
-								 + '	<code class="command">'+data.str+'</code>'
-								 + '	<code class="result">Error - '+data.result.message+'</code>'
-								 + '</div>'
-								 ;
-			}
-			$("#console").prepend(response);
-		});
-	}
-	
-	function refresh() {
-		$("#black").remove();
-		$("#bottom").append('<ul id="black"></ul>');
-		$("#black").treeview({
-			url: "/tree",
-			unique: true
-		});
-	}
-	
-	var id = Math.floor(Math.random()*10000);
-	function longPollConsole() {
-		$.getJSON("/console?id="+id,
-		function(data){
-			$.each(data, function(i, x) {
-				$("#console").prepend('<pre class="result">'+x+'</pre>');
-			});
-			longPollConsole();
-				});
-	}
-	longPollConsole();
-	</script>
-	
+    $("#input").keypress(function (e) {
+      if (e.keyCode != 13 /* Return */) return;
+      var msg = $("#input").attr("value").replace("\n", "");
+      //if (!util.isBlank(msg)) send(msg);
+      evalStr(msg);
+      $("#input").attr("value", ""); // clear the input field.
+    });
+  });
+  
+  function evalStr (str) {
+    // TODO This should be a POST
+    $.getJSON("/eval?eval="+encodeURIComponent(str),
+    function (data) {
+      var response;
+      if (data.error !== true) {
+        response = '<div class="response">'
+                 + '  <code class="command">'+data.str+'</code>'
+                 + '  <code class="result">'+data.result+'</code>'
+                 + '</div>'
+                 ;
+      } else {
+        response = '<div class="response error">'
+                 + '  <code class="command">'+data.str+'</code>'
+                 + '  <code class="result">Error - '+data.result.message+'</code>'
+                 + '</div>'
+                 ;
+      }
+      $("#console").prepend(response);
+    });
+  }
+  
+  function refresh() {
+    $("#black").remove();
+    $("#bottom").append('<ul id="black"></ul>');
+    $("#black").treeview({
+      url: "/tree",
+      unique: true
+    });
+  }
+  
+  var id = Math.floor(Math.random()*10000);
+  function longPollConsole() {
+    $.getJSON("/console?id="+id,
+    function(data){
+      $.each(data, function(i, x) {
+        $("#console").prepend('<pre class="result">'+x+'</pre>');
+      });
+      longPollConsole();
+        });
+  }
+  longPollConsole();
+  </script>
+  
 <style type="text/css">
-		#console {
-			overflow: auto;
-			height: 100%;
-		}
+    #console {
+      overflow: auto;
+      height: 100%;
+    }
 
-		#input {
-			width: 100%;
-			font-size: inherit;
-			margin: 0;
-			border-width: 0;
-			border-bottom: 0.5em solid #aaa;
-			background: #eee;
-			outline-width: 0;
-			clear: both;
-		}
+    #input {
+      width: 100%;
+      font-size: inherit;
+      margin: 0;
+      border-width: 0;
+      border-bottom: 0.5em solid #aaa;
+      background: #eee;
+      outline-width: 0;
+      clear: both;
+    }
 
-		/* Padding for response and input should be same. */
-		#input, .response {
-			padding: 1em;
-			font-size: inherit;
-		}
+    /* Padding for response and input should be same. */
+    #input, .response {
+      padding: 1em;
+      font-size: inherit;
+    }
 
-		.response {
-			border-bottom: 1px dashed grey;
-		}
+    .response {
+      border-bottom: 1px dashed grey;
+    }
 
-		.error {
-			background: #a55;
-		}
+    .error {
+      background: #a55;
+    }
 
-		.response .command {
-			display: block;
-		}
+    .response .command {
+      display: block;
+    }
 
-		.response .result {
-			display: block;
-			font-weight: bold;
-		}
-		
-		code {
-			font-family: sans-serif;
-			max-height: 200px;
-		}
-		
-		body {
-			overflow: hidden;
-		}
-	</style>
-	
-	</head>
-	<body>
-		<div id="inputBar">
-			<input tabindex="1" type="text" id="input"/>
-		</div>
-		<div id="console">
-		</div>
-	</body>
+    .response .result {
+      display: block;
+      font-weight: bold;
+    }
+    
+    code {
+      font-family: sans-serif;
+      max-height: 200px;
+    }
+    
+    body {
+      overflow: hidden;
+    }
+  </style>
+  
+  </head>
+  <body>
+    <div id="inputBar">
+      <input tabindex="1" type="text" id="input"/>
+    </div>
+    <div id="console">
+    </div>
+  </body>
 </html>
