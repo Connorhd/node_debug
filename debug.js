@@ -2,7 +2,7 @@ var fu = require("fu.js");
 
 var debug = exports;
 
-debug.listen = function(port, host) {
+debug.listen = function (port, host) {
   fu.listen(port, host);
 };
 
@@ -17,18 +17,20 @@ fu.get("/treeview-default.gif", fu.staticHandler("treeview-default.gif"));
 fu.get("/treeview-default-line.gif", fu.staticHandler("treeview-default-line.gif"));
 
 fu.get("/eval", function (req, res) {
-  if (req.uri.params.eval !== undefined) {
-    res.simpleJSON(200, evalStr(req.uri.params.eval));
+  if (req.uri.params.eval !== undefined && req.uri.params.id !== undefined) {
+    res.simpleJSON(200, evalStr(req.uri.params.eval, req.uri.params.id));
   } else {
     res.simpleText(200, 'Error');
   }
 });
 
 fu.get("/tree", function (req, res) {
-  if (req.uri.params.root !== undefined && req.uri.params.root !== 'source') {
-    res.simpleJSON(200, getObj(req.uri.params.root));
+  if (req.uri.params.id !== undefined && req.uri.params.cmd !== undefined) {
+    if (req.uri.params.root !== undefined) {
+      res.simpleJSON(200, getObj(req.uri.params.id, req.uri.params.cmd, req.uri.params.root));
+    }
   } else {
-    res.simpleJSON(200, getObj('process'));
+    res.simpleText(200, 'Error');
   }
 });
 
@@ -45,14 +47,20 @@ var SESSION_TIMEOUT = 60 * 1000;
 
 var sessions = [];
 
-function handleConsole (id, res) {
+function createSession (id) {
   if (sessions[id] === undefined) {
     // Create session
     sessions[id] = {
       timestamp: 0,
-      queue: []
+      queue: [],
+      result: [],
+      cmd: 0
     };
   }
+}
+
+function handleConsole (id, res) {
+  createSession(id);
   
   var session = sessions[id];
   session.timestamp = new Date();
@@ -100,14 +108,61 @@ setInterval(function () {
   }
 }, 1000);
 
-function getObj (key) {
-  var obj = process;
-  var keys = key.split('.');
+// Determine whether or not an object has children
+function hasChildren(obj) {
+  var children = false
   
-  keys.forEach(function (x) {
-    obj = obj[x];
-  });
+  if (typeof(obj) !== 'string') {
+    for (var j in obj) {
+      children = true;
+      break;
+    }
+  }
+  return children;
+}
+
+function getObj (id, cmd, key) {
+  if (sessions[id] === undefined || sessions[id].result[cmd] === undefined)
+    return {};
+
+  // node.Timer causes a segfault
+  if (key === "Timer") {
+    return {};
+  }
+
+  var obj = sessions[id].result[cmd];
+  
+  if (key === 'source') {
+    var output = {};
+    output.id = '_root';
+
+    try {
+      output.text = JSON.stringify(obj);
+    } catch (e) {
+      output.text = obj.toString();
+    }
     
+    output.text = '<code class="result">'+output.text+'</code>'
+    
+    if (hasChildren(obj) === true) {
+      output.hasChildren = true;
+    }
+
+    return [output];
+  }
+  
+  if (key === '_root') {
+    delete key;
+  }
+  
+  if (key !== undefined) {
+    var keys = key.split('.');
+  
+    keys.forEach(function (x) {
+      obj = obj[x];
+    });
+  }
+  
   var output = [];
   var cur;
   var children = false;
@@ -115,7 +170,10 @@ function getObj (key) {
     // Prevent loops
     if (obj === obj[i])
       continue;
-    cur = {id: key+'.'+i};
+    if (key !== undefined)
+      cur = {id: key+'.'+i};
+    else
+      cur = {id: i};
     cur.text = '<strong>'+i+' - '+typeof(obj[i])+'</strong>';
     var str;
     try {
@@ -131,40 +189,30 @@ function getObj (key) {
       }
     }
     cur.text += '<pre>'+str+'</pre>';
-    if (typeof(obj[i]) !== 'string') {
-      children = false
-      for (var j in obj[i]) {
-        children = true;
-        break;
-      }
-      if ((key+'.'+i) == 'process.node.Timer') {
-        children = false
-      }
-      if (children === true) {
-        cur.hasChildren = true;
-      }
-    }
+
+    if (hasChildren(obj[i]) === true)
+     cur.hasChildren = true;
+
     output.push(cur);
   }
   return output;
 }
 
-function evalStr (str) {
+function evalStr (str, id) {
+  createSession(id);
   var result;
   var error = false;
+  var output = {};
   try {
     result = eval(str);
-    try {
-      result = JSON.stringify(result);
-    } catch (e) {
-      result = result.toString();
-    }
+    sessions[id].cmd += 1;
+    sessions[id].result[sessions[id].cmd] = result;
   } catch (err) {
     error = true;
-    result = err;
+    output.result = err;
   }
-  var output = {result: result};
   output.error = error;
   output.str = str;
+  output.cmd = sessions[id].cmd;
   return output;
 }

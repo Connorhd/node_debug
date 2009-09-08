@@ -14,6 +14,9 @@
   <script src="jquery.treeview.async.js" type="text/javascript"></script>
   
   <script type="text/javascript">
+  // Generate an ID to distinguish requests from other open consoles
+  var id = Math.floor(Math.random()*10000);
+  
   $(document).ready(function (){
     $.ajaxSetup({ cache: false });
 
@@ -24,56 +27,60 @@
       evalStr(msg);
       $("#input").attr("value", ""); // clear the input field.
     });
+
+    longPollConsole();
   });
   
   function evalStr (str) {
     // TODO This should be a POST
-    $.getJSON("/eval?eval="+encodeURIComponent(str),
+    $.getJSON("/eval?id="+id+"&eval="+encodeURIComponent(str),
     function (data) {
       var response;
       if (data.error !== true) {
         response = '<div class="response">'
                  + '  <code class="command">'+data.str+'</code>'
-                 + '  <code class="result">'+data.result+'</code>'
+                 + '  <ul class="tree" id="cmd_'+data.cmd+'"></ul>'
                  + '</div>'
                  ;
       } else {
         response = '<div class="response error">'
                  + '  <code class="command">'+data.str+'</code>'
-                 + '  <code class="result">Error - '+data.result.message+'</code>'
+                 + '  <code class="result">Error: '+data.result.message+'</code>'
                  + '</div>'
                  ;
       }
       $("#console").prepend(response);
+      if (data.error !== true) {
+        $("#cmd_"+data.cmd).treeview({
+          url: "/tree?cmd="+data.cmd+"&id="+id,
+          unique: true
+        });
+      }
     });
   }
-  
-  function refresh() {
-    $("#black").remove();
-    $("#bottom").append('<ul id="black"></ul>');
-    $("#black").treeview({
-      url: "/tree",
-      unique: true
-    });
-  }
-  
-  var id = Math.floor(Math.random()*10000);
+
   function longPollConsole() {
     $.getJSON("/console?id="+id,
     function(data){
       $.each(data, function(i, x) {
-        $("#console").prepend('<pre class="result">'+x+'</pre>');
+        response = '<div class="response">'
+                 + '  <code class="result">'+x+'</code>'
+                 + '</div>'
+                 ;
+         $("#console").prepend(response);
       });
       longPollConsole();
-        });
+    });
   }
-  longPollConsole();
   </script>
   
 <style type="text/css">
     #console {
       overflow: auto;
-      height: 100%;
+      width: 100%;
+      bottom: 0;
+      top: 4em;
+      position: absolute;
     }
 
     #input {
@@ -85,6 +92,7 @@
       background: #eee;
       outline-width: 0;
       clear: both;
+      height: 1.5em;
     }
 
     /* Padding for response and input should be same. */
@@ -98,7 +106,7 @@
     }
 
     .error {
-      background: #a55;
+      background: #ebb;
     }
 
     .response .command {
@@ -125,7 +133,6 @@
     <div id="inputBar">
       <input tabindex="1" type="text" id="input"/>
     </div>
-    <div id="console">
-    </div>
+    <div id="console"></div>
   </body>
 </html>
