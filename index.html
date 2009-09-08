@@ -20,9 +20,51 @@
   $(document).ready(function (){
     $.ajaxSetup({ cache: false });
 
-    $("#input").keypress(function (e) {
+    var linesCurrent = 0;
+    var lines = [];
+    $("#input").keydown(function (e) {
+      // Deal with up/down arrowkeys
+      if (e.keyCode == 38) {
+        if (linesCurrent == lines.length) {
+          if ($("#input").val() != '') {
+            lines.push($("#input").val());
+          }
+        } else if ($("#input").val() != lines[linesCurrent]) {
+          lines.push($("#input").val());
+        }
+      
+        if (linesCurrent > 0) {
+          linesCurrent--;
+          $("#input").val(lines[linesCurrent]);
+        }
+        return false;
+      } else if (e.keyCode == 40) {
+        if (linesCurrent == lines.length) {
+          if ($("#input").val() != '') {
+            lines.push($("#input").val());
+            linesCurrent++;
+            $("#input").val('');
+          }
+        } else {
+          if ($("#input").val() != lines[linesCurrent]) {
+            lines.push($("#input").val());
+          }
+          linesCurrent++;
+          if (lines[linesCurrent] != null) {
+            $("#input").val(lines[linesCurrent]);
+          } else {
+            $("#input").val('');
+          }
+        }
+        return false;
+      }
+  
       if (e.keyCode != 13 /* Return */) return;
-      var msg = $("#input").attr("value").replace("\n", "");
+   
+      lines.push($("#input").val());
+      linesCurrent = lines.length;
+  
+      var msg = $("#input").val().replace("\n", "");
       //if (!util.isBlank(msg)) send(msg);
       evalStr(msg);
       $("#input").attr("value", ""); // clear the input field.
