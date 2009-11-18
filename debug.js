@@ -1,4 +1,4 @@
-var fu = require("fu.js");
+var fu = require("./fu");
 
 var debug = exports;
 

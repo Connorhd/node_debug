@@ -1,3 +1,3 @@
-var debug = require("debug.js");
+var debug = require("./debug");
 
 debug.listen(8080);

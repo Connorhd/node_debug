@@ -1,3 +1,8 @@
+var http = require('http'),
+    sys = require('sys'),
+    posix = require('posix')
+;
+
 DEBUG = true;
 
 var fu = exports;
@@ -18,7 +23,7 @@ fu.get = function (path, handler) {
   getMap[path] = handler;
 };
 
-var server = node.http.createServer(function (req, res) {
+var server = http.createServer(function (req, res) {
   if (req.method === "GET" || req.method === "HEAD") {
     var handler = getMap[req.uri.path] || notFound;
 
@@ -45,7 +50,7 @@ var server = node.http.createServer(function (req, res) {
 
 fu.listen = function (port, host) {
   server.listen(port, host);
-  puts("Server at http://" + (host || "127.0.0.1") + ":" + port.toString() + "/");
+  sys.puts("Server at http://" + (host || "127.0.0.1") + ":" + port.toString() + "/");
 };
 
 fu.close = function () { server.close(); };
@@ -66,8 +71,8 @@ fu.staticHandler = function (filename) {
       return;
     }
 
-    puts("loading " + filename + "...");
-    var promise = node.fs.cat(filename, encoding);
+    sys.puts("loading " + filename + "...");
+    var promise = posix.cat(filename, encoding);
 
     promise.addCallback(function (data) {
       body = data;
@@ -77,12 +82,12 @@ fu.staticHandler = function (filename) {
       if (!DEBUG)
         headers.push(["Cache-Control", "public"]);
        
-      puts("static file " + filename + " loaded");
+      sys.puts("static file " + filename + " loaded");
       callback();
     });
 
     promise.addErrback(function () {
-      puts("Error loading " + filename);
+      sys.puts("Error loading " + filename);
     });
   }
 
