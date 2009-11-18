@@ -63,7 +63,7 @@ function extname (path) {
 fu.staticHandler = function (filename) {
   var body, headers;
   var content_type = fu.mime.lookupExtension(extname(filename));
-  var encoding = (content_type.slice(0,4) === "text" ? "utf8" : "raw");
+  var encoding = (content_type.slice(0,4) === "text" ? "utf8" : "binary");
 
   function loadResponseData(callback) {
     if (body && headers && !DEBUG) {
