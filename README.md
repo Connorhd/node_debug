@@ -23,5 +23,7 @@ Browse to: http://127.0.0.1:8080/
 Now type:
 
     node
-    
+
     setTimeout(function () { debug.log("Test"); }, 5000)
+
+Click on objects to expand properties.
