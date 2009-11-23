@@ -82,9 +82,11 @@ debug.log = function (msg) {
   for (var id in sessions) {
     if (!sessions.hasOwnProperty(id)) continue;
     var session = sessions[id];
-    
-    session.queue.push(msg);
-    
+
+    session.cmd += 1;
+    session.result[session.cmd] = msg;
+    session.queue.push(session.cmd);
+
     if (session.timeout !== undefined) {
       clearTimeout(session.timeout);
     }
@@ -123,7 +125,7 @@ function hasChildren(obj) {
   return children;
 }
 
-function getObj (id, cmd, key) {
+function getObj(id, cmd, key) {
   if (sessions[id] === undefined || sessions[id].result[cmd] === undefined)
     return {};
 

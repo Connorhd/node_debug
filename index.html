@@ -106,10 +106,14 @@
     function(data){
       $.each(data, function(i, x) {
         response = '<div class="response">'
-                 + '  <code class="result">'+x+'</code>'
+                 + '  <ul class="tree" id="cmd_'+x+'"></ul>'
                  + '</div>'
                  ;
-         $("#console").prepend(response);
+        $("#console").prepend(response);
+        $("#cmd_"+x).treeview({
+          url: "/tree?cmd="+x+"&id="+id,
+          unique: true
+        });
       });
       longPollConsole();
     });
