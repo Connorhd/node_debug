@@ -94,7 +94,7 @@ fu.staticHandler = function (filename) {
   return function (req, res) {
     loadResponseData(function () {
       res.sendHeader(200, headers);
-      res.sendBody(body);
+      res.sendBody(body, encoding);
       res.finish();
     });
   }
