@@ -88,6 +88,7 @@
         response = '<div class="response error">'
                  + '  <code class="command">'+data.str+'</code>'
                  + '  <code class="result">Error: '+data.result.message+'</code>'
+                 + '  <pre class="stack">' + data.result.stack + '</pre>'
                  + '</div>'
                  ;
       }

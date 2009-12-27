@@ -210,6 +210,7 @@ function evalStr (str, id) {
   } catch (err) {
     error = true;
     output.result = err;
+    output.result.stack = output.result.stack.substring(0,output.result.stack.indexOf('at eval at evalStr')-4);
   }
   output.error = error;
   output.str = str;
