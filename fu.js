@@ -1,6 +1,6 @@
 var http = require('http'),
     sys = require('sys'),
-    posix = require('posix')
+    fs = require('fs')
 ;
 
 DEBUG = true;
@@ -73,7 +73,7 @@ fu.staticHandler = function (filename) {
 
     sys.puts("loading " + filename + "...");
     var path = __filename.match(/(.*\/)/)[0];
-    var promise = posix.cat(path + filename, encoding);
+    var promise = fs.cat(path + filename, encoding);
 
     promise.addCallback(function (data) {
       body = data;
@@ -82,7 +82,7 @@ fu.staticHandler = function (filename) {
                 ];
       if (!DEBUG)
         headers.push(["Cache-Control", "public"]);
-       
+
       sys.puts("static file " + filename + " loaded");
       callback();
     });
@@ -107,7 +107,7 @@ fu.mime = {
   lookupExtension : function(ext, fallback) {
     return fu.mime.TYPES[ext.toLowerCase()] || fallback || 'application/octet-stream';
   },
-  
+
   // List of most common mime-types, stolen from Rack.
   TYPES : { ".3gp"   : "video/3gpp"
           , ".a"     : "application/octet-stream"
