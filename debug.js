@@ -83,6 +83,12 @@ function closeReq (res) {
 }
 
 debug.log = function (msg) {
+  if (arguments.length > 1) {
+    for (i = 0; i < arguments.length; i++) {
+      debug.log(arguments[i]);
+    }
+    return;
+  }
   for (var id in sessions) {
     if (!sessions.hasOwnProperty(id)) continue;
     var session = sessions[id];
