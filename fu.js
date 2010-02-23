@@ -1,8 +1,7 @@
-var http = require('http'),
-    sys = require('sys'),
-    fs = require('fs')
-;
-
+var createServer = require("http").createServer;
+var readFile = require("fs").readFile;
+var sys = require("sys");
+var url = require("url");
 DEBUG = true;
 
 var fu = exports;
@@ -13,8 +12,8 @@ function notFound(req, res) {
   res.sendHeader(404, [ ["Content-Type", "text/plain"]
                       , ["Content-Length", NOT_FOUND.length]
                       ]);
-  res.sendBody(NOT_FOUND);
-  res.finish();
+  res.write(NOT_FOUND);
+  res.close();
 }
 
 var getMap = {};
@@ -22,17 +21,16 @@ var getMap = {};
 fu.get = function (path, handler) {
   getMap[path] = handler;
 };
-
-var server = http.createServer(function (req, res) {
+var server = createServer(function (req, res) {
   if (req.method === "GET" || req.method === "HEAD") {
-    var handler = getMap[req.uri.path] || notFound;
+    var handler = getMap[url.parse(req.url).pathname] || notFound;
 
     res.simpleText = function (code, body) {
       res.sendHeader(code, [ ["Content-Type", "text/plain"]
                            , ["Content-Length", body.length]
                            ]);
-      res.sendBody(body);
-      res.finish();
+      res.write(body);
+      res.close();
     };
 
     res.simpleJSON = function (code, obj) {
@@ -40,8 +38,8 @@ var server = http.createServer(function (req, res) {
       res.sendHeader(code, [ ["Content-Type", "text/json"]
                            , ["Content-Length", body.length]
                            ]);
-      res.sendBody(body);
-      res.finish();
+      res.write(body);
+      res.close();
     };
 
     handler(req, res);
@@ -72,31 +70,28 @@ fu.staticHandler = function (filename) {
     }
 
     sys.puts("loading " + filename + "...");
-    var path = __filename.match(/(.*\/)/)[0];
-    var promise = fs.cat(path + filename, encoding);
-
-    promise.addCallback(function (data) {
-      body = data;
-      headers = [ [ "Content-Type"   , content_type ]
-                , [ "Content-Length" , body.length ]
-                ];
-      if (!DEBUG)
-        headers.push(["Cache-Control", "public"]);
-
-      sys.puts("static file " + filename + " loaded");
-      callback();
-    });
-
-    promise.addErrback(function () {
-      sys.puts("Error loading " + filename);
+    readFile(filename, encoding, function (err, data) {
+      if (err) {
+        sys.puts("Error loading " + filename);
+      } else {
+        body = data;
+        headers = [ [ "Content-Type"   , content_type ]
+                  , [ "Content-Length" , body.length ]
+                  ];
+        if (!DEBUG)
+          headers.push(["Cache-Control", "public"]);
+         
+        sys.puts("static file " + filename + " loaded");
+        callback();
+      }
     });
   }
 
   return function (req, res) {
     loadResponseData(function () {
       res.sendHeader(200, headers);
-      res.sendBody(body, encoding);
-      res.finish();
+      res.write(body, encoding);
+      res.close();
     });
   }
 };
@@ -107,7 +102,7 @@ fu.mime = {
   lookupExtension : function(ext, fallback) {
     return fu.mime.TYPES[ext.toLowerCase()] || fallback || 'application/octet-stream';
   },
-
+  
   // List of most common mime-types, stolen from Rack.
   TYPES : { ".3gp"   : "video/3gpp"
           , ".a"     : "application/octet-stream"

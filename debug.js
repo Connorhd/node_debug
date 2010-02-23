@@ -1,4 +1,5 @@
-var fu = require("./fu");
+var fu = require("./fu"),
+  url = require("url");
 
 var debug = exports;
 
@@ -17,17 +18,19 @@ fu.get("/treeview-default.gif", fu.staticHandler("treeview-default.gif"));
 fu.get("/treeview-default-line.gif", fu.staticHandler("treeview-default-line.gif"));
 
 fu.get("/eval", function (req, res) {
-  if (req.uri.params.eval !== undefined && req.uri.params.id !== undefined) {
-    res.simpleJSON(200, evalStr(req.uri.params.eval, req.uri.params.id));
+  var uri = url.parse(req.url, true);
+  if (uri.query.eval !== undefined && uri.query.id !== undefined) {
+    res.simpleJSON(200, evalStr(uri.query.eval, uri.query.id));
   } else {
     res.simpleText(200, 'Error');
   }
 });
 
 fu.get("/tree", function (req, res) {
-  if (req.uri.params.id !== undefined && req.uri.params.cmd !== undefined) {
-    if (req.uri.params.root !== undefined) {
-      res.simpleJSON(200, getObj(req.uri.params.id, req.uri.params.cmd, req.uri.params.root));
+  var uri = url.parse(req.url, true);
+  if (uri.query.id !== undefined && uri.query.cmd !== undefined) {
+    if (uri.query.root !== undefined) {
+      res.simpleJSON(200, getObj(uri.query.id, uri.query.cmd, uri.query.root));
     }
   } else {
     res.simpleText(200, 'Error');
@@ -35,8 +38,9 @@ fu.get("/tree", function (req, res) {
 });
 
 fu.get("/console", function (req, res) {
-  if (req.uri.params.id !== undefined) {
-    handleConsole(req.uri.params.id, res);
+  var uri = url.parse(req.url, true);
+  if (uri.query.id !== undefined) {
+    handleConsole(uri.query.id, res);
   } else {
     res.simpleText(200, 'Error');
   }
